@@ -86,9 +86,20 @@ namespace CppRipper
     /// <summary>
     /// A pretty printer designed for the structural C++ grammar
     /// </summary>
-    public class StructuralCppOutput
+    public class CppStructuralOutput
         : AstTextPrinter
     {
+        public void PrintSimpleNode(ParseNode pn)
+        {
+            string s = "<" + pn.RuleType;
+            if (!pn.IsUnnamed())
+                s += " name='" + pn.RuleName + "'";
+            s += ">";
+            s += pn.ToString();
+            s += "</" + pn.RuleType + ">";
+            WriteLine(s);
+        }
+
         public override void PrintNode(ParseNode pn, int depth)
         {
             indent = new String(' ', depth * 2);
@@ -96,6 +107,14 @@ namespace CppRipper
             {
                 foreach (ParseNode child in pn)
                     PrintNode(child, depth);
+            }
+            else if (pn.RuleName == "pp_directive")
+            {
+                PrintSimpleNode(pn);
+            }
+            else if (pn.RuleName == "comment_set")
+            {
+                PrintSimpleNode(pn);
             }
             else
             {
