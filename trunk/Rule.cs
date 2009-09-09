@@ -82,6 +82,7 @@ namespace CppRipper
         }
         #endregion
 
+        #region properties
         /// <summary>
         /// Returns the name of the rule, or _unnamed_ if it is an unnamed rule.
         /// </summary>
@@ -132,6 +133,7 @@ namespace CppRipper
         /// Returns a string representing the kind of rule (Star, Choice, etc.)
         /// </summary>
         public abstract string RuleType { get; }
+        #endregion
 
         #region operator overloads
         /// <summary>
@@ -171,23 +173,39 @@ namespace CppRipper
         /// </summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        public bool Match(ParserState p)
+        public virtual bool Match(ParserState p)
         {
             int old_index = p.index;
-            ParseNode node = new ParseNode(this, p.Peek(), p.text, old_index);
-            p.Push(node);
-            if (InternalMatch(p))
+
+            if (p.CreateNodes && !(this is SkipRule))
             {
-                node.Complete(p.index);
-                p.Pop();
-                return true;
+                ParseNode node = new ParseNode(this, p.Peek(), p.text, old_index);
+                p.Push(node);
+                if (InternalMatch(p))
+                {
+                    node.Complete(p.index);
+                    p.Pop();
+                    return true;
+                }
+                else
+                {
+                    p.index = old_index;
+                    node = null;
+                    p.Pop();
+                    return false;
+                }
             }
             else
             {
-                p.index = old_index;
-                node = null;
-                p.Pop();
-                return false;
+                if (InternalMatch(p))
+                {
+                    return true;
+                }
+                else
+                {
+                    p.index = old_index;
+                    return false;
+                }
             }
         }
 
@@ -600,7 +618,7 @@ namespace CppRipper
         protected override bool InternalMatch(ParserState p)
         {
             int n = str.Length;
-            if (p.index + n >= p.text.Length)
+            if (p.index + n > p.text.Length)
                 return false;
             for (int i = 0; i < n; ++i)
             {
@@ -634,6 +652,9 @@ namespace CppRipper
 
         protected override bool InternalMatch(ParserState p)
         {
+            if (p.AtEndOfInput())
+                return false;
+
             char c = p.text[p.index++];
             return str.Contains(c);
         }
@@ -665,6 +686,9 @@ namespace CppRipper
 
         protected override bool InternalMatch(ParserState p)
         {
+            if (p.AtEndOfInput())
+                return false;
+
             char c = p.text[p.index++];
             return (c >= first && c <= last);
         }
@@ -699,6 +723,113 @@ namespace CppRipper
                 throw ex;
             }
             return true;
+        }
+    }
+
+    /// <summary>
+    /// Used to prevent creation of parse node in the AST tree. For 
+    /// example whitespace. 
+    /// </summary>
+    public class SkipRule : Rule
+    {
+        public SkipRule(Rule x)
+        {
+            AddRule(x);
+        }
+
+        public override string RuleDefinition
+        {
+            get { return "skip(" + rules[0].RuleDefinition + ")"; }
+        }
+
+        public override string RuleType
+        {
+            get { return "skip"; }
+        }
+
+        protected override bool InternalMatch(ParserState p)
+        {
+            // Tell the parser state to stop creating nodes. 
+            bool store = p.CreateNodes;
+            p.CreateNodes = false;
+            bool result = false;
+            try
+            {
+                result = rules[0].Match(p);
+            }
+            finally
+            {
+                p.CreateNodes = store;
+            }
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// Used to prevent creation of child parse nodes in the AST tree. For 
+    /// example identifiers. Similar to SkipRule.
+    /// </summary>
+    public class LeafRule : Rule
+    {
+        public LeafRule(Rule x)
+        {
+            AddRule(x);
+        }
+
+        public override string RuleDefinition
+        {
+            get { return rules[0].RuleDefinition; }
+        }
+
+        public override string RuleType
+        {
+            get { return "leaf"; }
+        }
+
+        protected override bool InternalMatch(ParserState p)
+        {
+            // Tell the parser state to stop creating nodes. 
+            bool store = p.CreateNodes;
+            p.CreateNodes = false;
+            bool result = false;
+            try
+            {
+                result = rules[0].Match(p);
+            }
+            finally
+            {
+                p.CreateNodes = store;
+            }
+            return result;
+        }
+    }
+    /// <summary>
+    /// A rule that returns true if at the end of input.
+    /// </summary>
+    public class EndOfInputRule : Rule
+    {
+        public EndOfInputRule()
+        {
+        }
+
+        public override string RuleDefinition
+        {
+            get { return "_EOF_"; }
+        }
+
+        public override string RuleType
+        {
+            get { return "_EOF_"; }
+        }
+
+        public override bool Match(ParserState p)
+        {
+            return p.AtEndOfInput();
+        }
+
+        protected override bool InternalMatch(ParserState p)
+        {
+            throw new Exception("Error: EndOfInput.InternalMatch() should never be called");
         }
     }
 }

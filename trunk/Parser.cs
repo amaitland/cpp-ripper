@@ -25,9 +25,21 @@ namespace CppRipper
             try
             {
                 if (!parse_rule.Match(state))
+                {
                     message = "Failed to parse file " + file;
+                }
                 else
-                    message = "Successfully parsed file";
+                {
+                    if (state.AtEndOfInput())
+                    {
+                        message = "Successfully parsed file";
+                    }
+                    else
+                    {
+                        message = "Failed to read end of input";
+                    }
+                }
+                    
             }
             catch (ParsingException e)
             {
@@ -53,3 +65,4 @@ namespace CppRipper
         }
     }
 }
+

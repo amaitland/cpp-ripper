@@ -60,6 +60,7 @@ namespace CppRipper
             this.parent = parent;
             this.text = text;
             this.begin = begin;
+            this.end = begin;
         }
 
         /// <summary>
@@ -95,6 +96,7 @@ namespace CppRipper
             this.end = end;
 
             // If there is a valid parent, we add ourselves to the parent.
+            // We also cannot be a skip rule
             if (parent != null)
                 parent.AddChild(this);
 
@@ -122,14 +124,18 @@ namespace CppRipper
         public void AddChild(ParseNode node)
         {
             Trace.Assert(node != null);
-
-            // TODO: keep or remove
-            // Leaf rules do not have children.
-            //if (rule is LeafRule)
-            //   return;
-            // Do not add "skipped" node
-            //if (node.rule is SkipRule)
-            //    return;
+            Trace.Assert(!(node.rule is SkipRule));
+            
+            // Add the child of a "NoFailRule", rather than a NoFailRule itself.
+            // also if the child rule is an unnamed "ChoiceRule", add its child instead. 
+            while (node.rule is NoFailRule || (node.rule.IsUnnamed() && node.rule is ChoiceRule))
+            {
+                if (node.Count == 0)
+                    return;
+                if (node.Count > 1)
+                    throw new Exception("Internal error: unexpected number of child nodes");
+                node = node[0];
+            }
 
             children.Add(node);
         }

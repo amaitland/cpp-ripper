@@ -16,6 +16,9 @@ namespace CppRipper
     /// </summary>
     public class BaseGrammar
     {
+        /// Rule operators are functions that take rules as arguments and produce new rules
+        #region Rule operators
+
         /// <summary>
         /// Creates a new rule that attempts to match Rule x, but will always return true.
         /// It is equivalent to the expression "x | Nothing()" and is represented by the unary operator "?".
@@ -48,7 +51,7 @@ namespace CppRipper
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        public static Rule Not(Rule x) { return new NotRule(x); }
+        public static Rule Not(Rule x) { return Skip(new NotRule(x)); }
         
         /// <summary>
         /// Creates a rule that does not advanced the parser index, and will always
@@ -153,7 +156,50 @@ namespace CppRipper
             SeqRule result = new SeqRule(list);
             return result;
         }
-     
+
+        /// <summary>
+        /// Parses a rule, but does not create a parse node.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public static Rule Skip(Rule x)
+        {
+            return new SkipRule(x);
+        }
+
+        /// <summary>
+        /// Parses a rule and creates a parse node, but prevents any children 
+        /// from being created.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public static Rule Leaf(Rule x)
+        {
+            return new LeafRule(x);
+        }
+
+        /// <summary>
+        /// Parses a rule 0 or more times but does not create a parse node.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public static Rule Eat(Rule x)
+        {
+            return Skip(Star(x));
+        }
+
+        /// <summary>
+        /// Returns a rule that indicates we are the end of input.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public static Rule EndOfInput()
+        {
+            return new EndOfInputRule();
+        }
+        #endregion
+
+        /// Functions for operating on grammars
         #region grammar function
         /// <summary>
         /// Given a grammar object, it will set the name of all fields of type Rule 

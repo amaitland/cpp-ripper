@@ -17,12 +17,55 @@ namespace CppRipper
         public int index;
         #endregion
 
+        #region public propterties
+        /// <summary>
+        /// Indicates whether nodes should be created. If set, 
+        /// it will be applied recursively to all child nodes.
+        /// </summary>
+        public bool CreateNodes { get; set; }
+
+        /// <summary>
+        /// Outputs a number of characters before the current parser position.
+        /// When debugging, this property helps us see where we are in the input stream.
+        /// </summary>
+        internal string DebugPrefixContext
+        {
+            get
+            {
+                int cnt = 25;
+                int begin = index - cnt;
+                if (begin < 0)
+                {
+                    begin = 0;
+                    cnt = index - begin;
+                }
+                return "... " + text.Substring(begin, cnt);
+            }
+        }
+
+        /// <summary>
+        /// Outputs a number of characters after the current parser position.
+        /// When debugging, this property helps us see where we are in the input stream
+        /// </summary>
+        internal string DebugSuffixContext
+        {
+            get
+            {
+                int cnt = 25;
+                if (index + cnt > text.Length)
+                    cnt = text.Length - index;
+                return text.Substring(index, cnt) + " ... ";
+            }
+        }
+        #endregion
+
         /// <summary>
         /// Constructs a parser state, that manages a pointer to the text.
         /// </summary>
         /// <param name="text"></param>
         public ParserState(string text)
         {
+            CreateNodes = true;
             this.text = text;
             ParseNode root = new ParseNode(null, null, text, 0);
             root.Complete(text.Length);
@@ -86,37 +129,6 @@ namespace CppRipper
             {
                 Peek().Complete(index);
                 Pop();
-            }
-        }
-
-        /// <summary>
-        /// Outputs a number of characters before the current parser position.
-        /// When debugging, this property helps us see where we are in the input stream.
-        /// </summary>
-        internal string DebugPrefixContext
-        {
-            get
-            {
-                int cnt = 25;
-                int begin = index - cnt;
-                if (begin < 0)
-                    begin = 0;
-                return "... " + text.Substring(begin, cnt);
-            }
-        }
-
-        /// <summary>
-        /// Outputs a number of characters after the current parser position.
-        /// When debugging, this property helps us see where we are in the input stream
-        /// </summary>
-        internal string DebugSuffixContext
-        {
-            get
-            {
-                int cnt = 25;
-                if (index + cnt > text.Length)
-                    cnt = text.Length - index;
-                return text.Substring(index, cnt) + " ... ";
             }
         }
     }
