@@ -1,5 +1,8 @@
 ﻿namespace CppRipper
 {
+    /// <summary>
+    /// The main form.
+    /// </summary>
     partial class Form1
     {
         /// <summary>

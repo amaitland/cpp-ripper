@@ -240,7 +240,7 @@ namespace CppRipper
             ident_first_char = CharSet("_") | letter;
             ident_next_char = ident_first_char | digit;
             identifier_extension = CharSeq("::") + Recursive(() => identifier);
-            identifier = ident_first_char + Star(ident_next_char) + Star(identifier_extension);
+            identifier = Leaf(ident_first_char + Star(ident_next_char) + Star(identifier_extension));
             #endregion
 
             #region numbers
@@ -254,8 +254,8 @@ namespace CppRipper
             tab = CharSeq("\t");
             space = CharSeq(" ");
             simple_ws = tab | space;
-            ext_line = CharSeq("/") + Star(simple_ws) + CharSeq("\n");
             eol = Opt(CharSeq("\r")) + CharSeq("\n");
+            ext_line = CharSeq("\\") + Star(simple_ws) + eol;
             multiline_ws = simple_ws | eol;
             until_eol = Star(ext_line | AnythingBut(eol));
             line_comment_content = until_eol;
@@ -263,7 +263,7 @@ namespace CppRipper
             full_comment_content = Until(CharSeq("*/"));
             full_comment = CharSeq("/*") + NoFailSeq(full_comment_content + CharSeq("*/"));
             comment = line_comment | full_comment;
-            ws = Star(multiline_ws | comment);
+            ws = Eat(multiline_ws | comment);
             #endregion
 
             #region keyword rules

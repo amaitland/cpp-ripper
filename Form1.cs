@@ -14,16 +14,18 @@ namespace CppRipper
     {
         public void ParseFile(string file)
         {
-            StructuralCppOutput output = new StructuralCppOutput();
+            CppStructuralOutput output = new CppStructuralOutput();
             CppFileParser parser = new CppFileParser(output, file);
-            editMain.Text = output.ToString();
+            editMain.Lines = output.GetStrings();
             editOutput.Text = parser.Message;
         }
 
         public void StartParsing()
         {
-            string dir = @"C:\cygwin\home\Chr15topher\dev\lua-5.1.4\src";
-            string file = dir + "\\" + "lparser.c";
+            String[] args = Environment.GetCommandLineArgs();
+            if (args.Length < 2)
+                throw new Exception("Expected one argument");
+            string file = args[1];
             ParseFile(file);
         }
 

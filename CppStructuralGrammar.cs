@@ -33,53 +33,58 @@ namespace CppRipper
         public Rule comment_set;
         public Rule label;
         public Rule file;
-        
+
+        public Rule Delimiter(string s)
+        {
+            return Skip(CharSeq(s)) + Eat(multiline_ws);
+        }
+
         public CppStructuralGrammar()
         {
             declaration_list
                 = Recursive(() => Star(declaration));
 
             bracketed_group
-                = CharSeq("[") + Star(multiline_ws) + NoFailSeq(declaration_list + CharSeq("]") + Star(multiline_ws));
+                = Delimiter("[") + declaration_list + NoFail(Delimiter("]"));
 
             paran_group
-                = CharSeq("(") + Star(multiline_ws) + NoFailSeq(declaration_list + CharSeq(")") + Star(multiline_ws));
+                = Delimiter("(") + declaration_list + NoFail(Delimiter(")"));
 
             brace_group
-                = CharSeq("{") + Star(multiline_ws) + NoFailSeq(declaration_list + CharSeq("}") + Star(multiline_ws));
+                = Delimiter("{") + declaration_list + NoFail(Delimiter("}"));
 
             symbol
-                = Not(CharSeq("/*") | CharSeq("//")) + CharSet("~!@%^&*-+=|:<>.?/,") + Star(multiline_ws);
+                = Not(CharSeq("/*") | CharSeq("//")) + CharSet("~!@%^&*-+=|:<>.?/,") + Eat(multiline_ws);
 
             template_decl
-                = TEMPLATE + Nested("<", ">") + Star(multiline_ws);
+                = TEMPLATE + NoFail(Nested("<", ">")) + ws;
 
             typedef_decl
-                = TYPEDEF + Star(multiline_ws);
+                = TYPEDEF + Eat(multiline_ws);
 
             class_decl
-                = CLASS + Opt(identifier) + Star(multiline_ws);
+                = CLASS + Opt(identifier) + Eat(multiline_ws);
 
             struct_decl
-                = STRUCT + Opt(identifier) + Star(multiline_ws);
+                = STRUCT + Opt(identifier) + Eat(multiline_ws);
 
             union_decl
-                = UNION + Opt(identifier) + Star(multiline_ws);
+                = UNION + Opt(identifier) + Eat(multiline_ws);
 
             enum_decl
-                = ENUM + Opt(identifier) + Star(multiline_ws);
+                = ENUM + Opt(identifier) + Eat(multiline_ws);
 
             label
-                = identifier + ws + COLON + Star(multiline_ws);
+                = identifier + ws + COLON + Eat(multiline_ws);
 
             comment_set
-                = Star(comment + Star(multiline_ws)) + Star(multiline_ws);
+                = Star(comment + Eat(multiline_ws)) + Eat(multiline_ws);
 
             same_line_comment
-                = Star(simple_ws) + comment;
+                = Eat(simple_ws) + comment;
 
             pp_directive
-                = CharSeq("#") + ws + identifier + Star(simple_ws) + until_eol;
+                = CharSeq("#") + NoFailSeq(ws + identifier + Eat(simple_ws) + until_eol + eol);
 
             type_decl 
                 = Opt(template_decl) + (class_decl | struct_decl | union_decl | enum_decl);
@@ -96,15 +101,15 @@ namespace CppRipper
                 | identifier;
 
             declaration_content
-                = Plus(node + Star(multiline_ws));
+                = Plus(node + Eat(multiline_ws));
 
             declaration
-                = comment_set + pp_directive + Star(multiline_ws)
-                | comment_set + semicolon + Opt(same_line_comment) + Star(multiline_ws)
-                | comment_set + declaration_content + Opt(semicolon) + Opt(same_line_comment) + Star(multiline_ws);
+                = comment_set + pp_directive + Eat(multiline_ws)
+                | comment_set + semicolon + Opt(same_line_comment) + Eat(multiline_ws)
+                | comment_set + declaration_content + Opt(semicolon) + Opt(same_line_comment) + Eat(multiline_ws);
 
             file
-                = declaration_list;
+                = declaration_list + ws + NoFail(EndOfInput());
 
             //===============================================================================================
             // Tidy up the grammar, and assign rule names from the field names.
