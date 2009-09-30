@@ -14,168 +14,217 @@ namespace CppRipper
     public class CppBaseGrammar
         : BaseGrammar
     {
-        #region keyword rules
-        public Rule COND;
-        public Rule DOT;
-        public Rule COLON;
-        public Rule AMP;
-        public Rule PLUS;
-        public Rule MINUS;
-        public Rule STAR;
-        public Rule SLASH;
-        public Rule MOD;
-        public Rule NOT;
-        public Rule TILDE;
-        public Rule CARET;
-        public Rule PIPE;
-        public Rule EQ;
-        public Rule COMMA;
-        public Rule SIZEOF;
-        public Rule PTR_OP;
-        public Rule INC_OP;
-        public Rule DEC_OP;
-        public Rule LEFT_OP;
-        public Rule RIGHT_OP;
-        public Rule LT_OP;
-        public Rule GT_OP;
-        public Rule LE_OP;
-        public Rule GE_OP;
-        public Rule EQ_OP;
-        public Rule NE_OP;
-        public Rule AND_OP;
-        public Rule OR_OP;
-        public Rule MUL_ASSIGN;
-        public Rule DIV_ASSIGN;
-        public Rule MOD_ASSIGN;
-        public Rule ADD_ASSIGN;
-        public Rule SUB_ASSIGN;
-        public Rule LEFT_ASSIGN;
-        public Rule RIGHT_ASSIGN;
-        public Rule AND_ASSIGN;
-        public Rule XOR_ASSIGN;
-        public Rule OR_ASSIGN;
-        public Rule TYPEDEF;
-        public Rule EXTERN;
-        public Rule STATIC;
-        public Rule AUTO;
-        public Rule REGISTER;
-        public Rule CHAR;
-        public Rule SHORT;
-        public Rule INT;
-        public Rule LONG;
-        public Rule SIGNED;
-        public Rule UNSIGNED;
-        public Rule FLOAT;
-        public Rule DOUBLE;
-        public Rule CONST;
-        public Rule VOLATILE;
-        public Rule VOID;
-        public Rule STRUCT;
-        public Rule UNION;
-        public Rule ENUM;
-        public Rule ELLIPSIS;
-        public Rule CASE;
-        public Rule DEFAULT;
-        public Rule IF;
-        public Rule ELSE;
-        public Rule SWITCH;
-        public Rule WHILE;
-        public Rule DO;
-        public Rule FOR;
-        public Rule GOTO;
-        public Rule CONTINUE;
-        public Rule BREAK;
-        public Rule RETURN;
-        public Rule CLASS;
-        public Rule TYPENAME;
-        public Rule TYPEID;
-        public Rule TEMPLATE;
-        public Rule PUBLIC;
-        public Rule PROTECTED;
-        public Rule PRIVATE;
-        public Rule VIRTUAL;
-        public Rule OPERATOR;
-        public Rule USING;
-        #endregion
-
         #region identifiers
-        public Rule digit;
-        public Rule lower_case_letter;
-        public Rule upper_case_letter;
-        public Rule letter;
-        public Rule ident_first_char;
-        public Rule ident_next_char;
-        public Rule identifier_extension;
-        public Rule identifier;
+        public static Rule digit = CharRange('0', '9');
+        public static Rule lower_case_letter = CharRange('a', 'z');
+        public static Rule upper_case_letter = CharRange('A', 'Z');
+        public static Rule letter = lower_case_letter | upper_case_letter;
+        public static Rule ident_first_char = CharSet("_") | letter;
+        public static Rule ident_next_char = ident_first_char | digit;
+        public static Rule identifier_extension = CharSeq("::") + Recursive(() => identifier);
+        public static Rule identifier = Store(ident_first_char + Star(ident_next_char) + Star(identifier_extension)) + multiline_ws;
         #endregion
 
         #region numbers
-        public Rule octal_digit;
-        public Rule nonzero_digit;
-        public Rule hex_digit;
-        public Rule sign;
+        public static Rule octal_digit = CharRange('0', '7');
+        public static Rule nonzero_digit = CharRange('1', '9');
+        public static Rule hex_digit = digit | CharRange('a', 'f') | CharRange('A', 'F');
+        public static Rule sign = CharSet("+-");
         #endregion numbers
 
         #region whitespace
-        public Rule comment;
-        public Rule line_comment_content;
-        public Rule full_comment_content;
-        public Rule line_comment;
-        public Rule full_comment;
-        public Rule tab;
-        public Rule space;
-        public Rule ext_line;
-        public Rule semicolon;  
-        public Rule eos;
-        public Rule eol;
-        public Rule until_eol;
-        public Rule multiline_ws;
-        public Rule simple_ws;
-        public Rule ws;
+        public static Rule tab = CharSeq("\t");
+        public static Rule space = CharSeq(" ");
+        public static Rule simple_ws = Star(tab | space);
+        public static Rule eol = Opt(CharSeq("\r")) + CharSeq("\n");
+        public static Rule ext_line = CharSeq("\\") + Star(simple_ws) + eol;
+        public static Rule multiline_ws = Star(simple_ws | eol);
+        public static Rule until_eol = Star(ext_line | AnythingBut(eol));
+        public static Rule line_comment_content = until_eol;
+        public static Rule line_comment = CharSeq("//") + NoFailSeq(line_comment_content + eol);
+        public static Rule full_comment_content = Until(CharSeq("*/"));
+        public static Rule full_comment = CharSeq("/*") + NoFailSeq(full_comment_content + CharSeq("*/"));
+        public static Rule comment = Store(line_comment | full_comment);
+        public static Rule ws = Star(multiline_ws | comment);
+        #endregion
+
+        #region keyword rules
+        public static Rule COND = Word("?");
+        public static Rule DOT = Word(".");
+        public static Rule COLON = Word(":");
+        public static Rule AMP = Word("&");
+        public static Rule PLUS = Word("+");
+        public static Rule MINUS = Word("-");
+        public static Rule STAR = Word("*");
+        public static Rule SLASH = Word("/");
+        public static Rule MOD = Word("%");
+        public static Rule NOT = Word("!");
+        public static Rule TILDE = Word("~");
+        public static Rule CARET = Word("^");
+        public static Rule PIPE = Word("|");
+        public static Rule EQ = Word("=");
+        public static Rule COMMA = Word(",");
+        public static Rule SIZEOF = Word("sizeof");
+        public static Rule PTR_OP = Word("->");
+        public static Rule INC_OP = Word("++");
+        public static Rule DEC_OP = Word("--");
+        public static Rule LEFT_OP = Word("<<");
+        public static Rule RIGHT_OP = Word(">>");
+        public static Rule LT_OP = Word("<");
+        public static Rule GT_OP = Word(">");
+        public static Rule LE_OP = Word("<=");
+        public static Rule GE_OP = Word(">=");
+        public static Rule EQ_OP = Word("==");
+        public static Rule NE_OP = Word("!=");
+        public static Rule AND_OP = Word("&&");
+        public static Rule OR_OP = Word("||");
+        public static Rule MUL_ASSIGN = Word("*=");
+        public static Rule DIV_ASSIGN = Word("/=");
+        public static Rule MOD_ASSIGN = Word("%=");
+        public static Rule ADD_ASSIGN = Word("+=");
+        public static Rule SUB_ASSIGN = Word("-=");
+        public static Rule LEFT_ASSIGN = Word("<<=");
+        public static Rule RIGHT_ASSIGN = Word(">>=");
+        public static Rule AND_ASSIGN = Word("&=");
+        public static Rule XOR_ASSIGN = Word("^=");
+        public static Rule OR_ASSIGN = Word("|=");
+        public static Rule TYPEDEF = Word("typedef");
+        public static Rule EXTERN = Word("extern");
+        public static Rule STATIC = Word("static");
+        public static Rule AUTO = Word("auto");
+        public static Rule REGISTER = Word("register");
+        public static Rule CHAR = Word("char");
+        public static Rule SHORT = Word("short");
+        public static Rule INT = Word("int");
+        public static Rule LONG = Word("long");
+        public static Rule SIGNED = Word("signed");
+        public static Rule UNSIGNED = Word("unsigned");
+        public static Rule FLOAT = Word("float");
+        public static Rule DOUBLE = Word("double");
+        public static Rule CONST = Word("const");
+        public static Rule VOLATILE = Word("volatile");
+        public static Rule VOID = Word("void");
+        public static Rule STRUCT = Word("struct");
+        public static Rule UNION = Word("union");
+        public static Rule ENUM = Word("enum");
+        public static Rule ELLIPSIS = Word("...");
+        public static Rule CASE = Word("case");
+        public static Rule DEFAULT = Word("default");
+        public static Rule IF = Word("if");
+        public static Rule ELSE = Word("else");
+        public static Rule SWITCH = Word("switch");
+        public static Rule WHILE = Word("while");
+        public static Rule DO = Word("do");
+        public static Rule FOR = Word("for");
+        public static Rule GOTO = Word("goto");
+        public static Rule CONTINUE = Word("continue");
+        public static Rule BREAK = Word("break");
+        public static Rule RETURN = Word("return");
+        public static Rule CLASS = Word("class");
+        public static Rule TYPENAME = Word("typename");
+        public static Rule TYPEID = Word("typeid");
+        public static Rule TEMPLATE = Word("template");
+        public static Rule PUBLIC = Word("public");
+        public static Rule PROTECTED = Word("protected");
+        public static Rule PRIVATE = Word("private");
+        public static Rule VIRTUAL = Word("virtual");
+        public static Rule OPERATOR = Word("operator");
+        public static Rule USING = Word("using");
         #endregion
 
         #region literals
-        public Rule dbl_quote;
-        public Rule quote;
-        public Rule dot;
-        public Rule literal;
-        public Rule int_literal;
-        public Rule unsigned_literal;
-        public Rule decimal_literal;
-        public Rule octal_literal;
-        public Rule hex_literal;
-        public Rule hex_prefix;
-        public Rule integer_suffix;
-        public Rule long_suffix;
-        public Rule unsigned_suffix;
-        public Rule float_literal;
-        public Rule unsigned_float;
-        public Rule simple_float;
-        public Rule exponential_float;
-        public Rule exponent_part;
-        public Rule exponent_prefix;
-        public Rule exponent;
-        public Rule digit_sequence;
-        public Rule float_suffix;
-        public Rule char_literal;
-        public Rule c_char;
-        public Rule s_char;
-        public Rule string_literal;
-        public Rule escape_sequence;
-        public Rule simple_escape;
-        public Rule octal_escape;
-        public Rule hex_escape;
-        public Rule boolean_literal;
+        public static Rule dot
+            = CharSeq(".");
+        public static Rule dbl_quote
+            = CharSeq("\"");
+        public static Rule quote
+            = CharSeq("\'");
+        public static Rule simple_escape
+            = CharSeq("\\") + CharSet("abfnrtv'\"?\\");
+        public static Rule octal_escape
+            = CharSeq("\\") + octal_digit + Opt(octal_digit + Opt(octal_digit));
+        public static Rule hex_escape
+            = CharSeq("\\x") + Star(hex_digit);
+        public static Rule escape_sequence
+            = simple_escape
+            | octal_escape
+            | hex_escape;
+        public static Rule c_char
+            = escape_sequence | Not(quote) + Anything();
+        public static Rule s_char
+            = escape_sequence | Not(dbl_quote) + Anything();
+        public static Rule long_suffix
+            = CharSet("Ll");
+        public static Rule unsigned_suffix
+            = CharSet("Uu");
+        public static Rule digit_sequence
+            = Plus(digit);
+        public static Rule exponent
+            = Opt(sign) + digit_sequence;
+        public static Rule exponent_prefix
+            = CharSet("Ee");
+        public static Rule exponent_part
+            = exponent_prefix + exponent;
+        public static Rule float_suffix
+            = CharSet("LlFf");
+        public static Rule simple_float
+            = CharSeq(".") + digit_sequence
+            | digit_sequence + dot + Opt(digit_sequence);
+        public static Rule exponential_float
+            = digit_sequence + exponent_part
+            | simple_float + exponent_part;
+        public static Rule unsigned_float
+            = simple_float
+            | exponential_float;
+        public static Rule hex_prefix
+            = CharSeq("0X") | CharSeq("0x");
+        public static Rule hex_literal
+            = hex_prefix + Plus(hex_digit);
+        public static Rule octal_literal
+            = CharSeq("0") + Star(octal_digit);
+        public static Rule decimal_literal
+            = nonzero_digit + Star(digit);
+        public static Rule unsigned_literal
+            = decimal_literal
+            | octal_literal
+            | hex_literal;
+        public static Rule integer_suffix
+            = long_suffix
+            | unsigned_suffix
+            | unsigned_suffix + long_suffix
+            | long_suffix + unsigned_suffix;
+        public static Rule int_literal
+            = unsigned_literal + Not(dot) + Opt(integer_suffix);
+        public static Rule float_literal
+            = unsigned_float + Opt(float_suffix);
+        public static Rule char_literal
+            = Opt(CharSeq("L")) + quote + Star(c_char) + quote;
+        public static Rule string_literal
+            = Opt(CharSeq("L")) + dbl_quote + Star(s_char) + dbl_quote;
+        public static Rule boolean_literal
+            = Word("true") | Word("false");
+        public static Rule literal
+            = (int_literal
+            | char_literal
+            | float_literal
+            | string_literal
+            | boolean_literal)
+            + NoFail(Not(ident_next_char)) + ws;
         #endregion
 
         #region pre-processor directives
-        public Rule pragma;
-        public Rule included_file;
-        public Rule include;
-        public Rule ifdef_macro;
-        public Rule endif_macro;
-        public Rule elif_macro;
-        public Rule else_macro;
+        public static Rule pragma = Word("#") + Word("pragma") + until_eol;
+        public static Rule included_file = string_literal | CharSeq("<") + Star(Not(CharSeq(">")) + Anything()) + CharSeq(">");
+        public static Rule include = Word("#") + Word("include") + included_file;
+        public static Rule ifdef_macro = Word("#") + Word("if") + until_eol + eol;
+        public static Rule endif_macro = Word("#") + Word("endif") + until_eol + eol;
+        public static Rule elif_macro = Word("#") + Word("elif") + until_eol + eol;
+        public static Rule else_macro = Word("#") + Word("else") + until_eol + eol;
+        #endregion
+
+        #region symbols
+        public static Rule semicolon = CharSeq(";");
+        public static Rule eos = Word(";");
         #endregion
 
         #region rule generating functions
@@ -185,7 +234,7 @@ namespace CppRipper
         /// </summary>
         /// <param name="r"></param>
         /// <returns></returns>
-        public Rule CommaList(Rule r)
+        public static Rule CommaList(Rule r)
         {
             return r + Star(COMMA + r);
         }
@@ -197,7 +246,7 @@ namespace CppRipper
         /// <param name="begin"></param>
         /// <param name="end"></param>
         /// <returns></returns>
-        public Rule Nested(Rule begin, Rule end)
+        public static Rule Nested(Rule begin, Rule end)
         {
             RecursiveRule recursive = new RecursiveRule(() => { return Nested(begin, end); });
             return begin + NoFailSeq(Star(recursive | Not(end) + Not(begin) + Anything()) + end);
@@ -210,7 +259,7 @@ namespace CppRipper
         /// <param name="begin"></param>
         /// <param name="end"></param>
         /// <returns></returns>
-        public Rule Nested(string begin, string end)
+        public static Rule Nested(string begin, string end)
         {
             return Nested(CharSeq(begin), CharSeq(end));
         }
@@ -221,230 +270,17 @@ namespace CppRipper
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
-        public Rule Word(string s) 
+        public static Rule Word(string s) 
         {
             return CharSeq(s) + Not(ident_next_char) + ws;
         }
         #endregion
 
         /// <summary>
-        /// Constructor: initializes the public rule fields.
+        /// Constructor: initializes the public static Rule fields.
         /// </summary>
         public CppBaseGrammar()
         {
-            #region identifiers
-            digit = CharRange('0', '9');
-            lower_case_letter = CharRange('a', 'z');
-            upper_case_letter = CharRange('A', 'Z');
-            letter = lower_case_letter | upper_case_letter;
-            ident_first_char = CharSet("_") | letter;
-            ident_next_char = ident_first_char | digit;
-            identifier_extension = CharSeq("::") + Recursive(() => identifier);
-            identifier = Leaf(ident_first_char + Star(ident_next_char) + Star(identifier_extension));
-            #endregion
-
-            #region numbers
-            octal_digit = CharRange('0', '7');
-            nonzero_digit = CharRange('1', '9');
-            hex_digit = digit | CharRange('a', 'f') | CharRange('A', 'F');
-            sign = CharSet("+-");
-            #endregion numbers
-
-            #region whitespace
-            tab = CharSeq("\t");
-            space = CharSeq(" ");
-            simple_ws = tab | space;
-            eol = Opt(CharSeq("\r")) + CharSeq("\n");
-            ext_line = CharSeq("\\") + Star(simple_ws) + eol;
-            multiline_ws = simple_ws | eol;
-            until_eol = Star(ext_line | AnythingBut(eol));
-            line_comment_content = until_eol;
-            line_comment = CharSeq("//") + NoFailSeq(line_comment_content + eol);
-            full_comment_content = Until(CharSeq("*/"));
-            full_comment = CharSeq("/*") + NoFailSeq(full_comment_content + CharSeq("*/"));
-            comment = line_comment | full_comment;
-            ws = Eat(multiline_ws | comment);
-            #endregion
-
-            #region keyword rules
-            COND = Word("?");
-            DOT = Word(".");
-            COLON = Word(":");
-            AMP = Word("&");
-            PLUS = Word("+");
-            MINUS = Word("-");
-            STAR = Word("*");
-            SLASH = Word("/");
-            MOD = Word("%");
-            NOT = Word("!");
-            TILDE = Word("~");
-            CARET = Word("^");
-            PIPE = Word("|");
-            EQ = Word("=");
-            COMMA = Word(",");
-            SIZEOF = Word("sizeof");
-            PTR_OP = Word("->");
-            INC_OP = Word("++");
-            DEC_OP = Word("--");
-            LEFT_OP = Word("<<");
-            RIGHT_OP = Word(">>");
-            LT_OP = Word("<");
-            GT_OP = Word(">");
-            LE_OP = Word("<=");
-            GE_OP = Word(">=");
-            EQ_OP = Word("==");
-            NE_OP = Word("!=");
-            AND_OP = Word("&&");
-            OR_OP = Word("||");
-            MUL_ASSIGN = Word("*=");
-            DIV_ASSIGN = Word("/=");
-            MOD_ASSIGN = Word("%=");
-            ADD_ASSIGN = Word("+=");
-            SUB_ASSIGN = Word("-=");
-            LEFT_ASSIGN = Word("<<=");
-            RIGHT_ASSIGN = Word(">>=");
-            AND_ASSIGN = Word("&=");
-            XOR_ASSIGN = Word("^=");
-            OR_ASSIGN = Word("|=");
-            TYPEDEF = Word("typedef");
-            EXTERN = Word("extern");
-            STATIC = Word("static");
-            AUTO = Word("auto");
-            REGISTER = Word("register");
-            CHAR = Word("char");
-            SHORT = Word("short");
-            INT = Word("int");
-            LONG = Word("long");
-            SIGNED = Word("signed");
-            UNSIGNED = Word("unsigned");
-            FLOAT = Word("float");
-            DOUBLE = Word("double");
-            CONST = Word("const");
-            VOLATILE = Word("volatile");
-            VOID = Word("void");
-            STRUCT = Word("struct");
-            UNION = Word("union");
-            ENUM = Word("enum");
-            ELLIPSIS = Word("...");
-            CASE = Word("case");
-            DEFAULT = Word("default");
-            IF = Word("if");
-            ELSE = Word("else");
-            SWITCH = Word("switch");
-            WHILE = Word("while");
-            DO = Word("do");
-            FOR = Word("for");
-            GOTO = Word("goto");
-            CONTINUE = Word("continue");
-            BREAK = Word("break");
-            RETURN = Word("return");
-            CLASS = Word("class");
-            TYPENAME = Word("typename");
-            TYPEID = Word("typeid");
-            TEMPLATE = Word("template");
-            PUBLIC = Word("public");
-            PROTECTED = Word("protected");
-            PRIVATE = Word("private");
-            VIRTUAL = Word("virtual");
-            OPERATOR = Word("operator");
-            USING = Word("using");
-            #endregion
-
-            #region literals
-            dot
-                = CharSeq(".");
-            dbl_quote 
-                = CharSeq("\"");
-            quote 
-                = CharSeq("\'");
-            simple_escape
-                = CharSeq("\\") + CharSet("abfnrtv'\"?\\");
-            octal_escape
-                = CharSeq("\\") + octal_digit + Opt(octal_digit + Opt(octal_digit));
-            hex_escape
-                = CharSeq("\\x") + Star(hex_digit);
-            escape_sequence
-                = simple_escape
-                | octal_escape
-                | hex_escape;
-            c_char
-                = escape_sequence | Not(quote) + Anything();
-            s_char
-                = escape_sequence | Not(dbl_quote) + Anything();
-            long_suffix	
-                = CharSet("Ll");
-            unsigned_suffix	
-                = CharSet("Uu");
-            digit_sequence	 
-                = Plus(digit);
-            exponent
-                = Opt(sign) + digit_sequence;
-            exponent_prefix
-                = CharSet("Ee");
-            exponent_part
-                = exponent_prefix + exponent;
-            float_suffix
-                = CharSet("LlFf");
-            simple_float
-                = CharSeq(".") + digit_sequence 
-                | digit_sequence + dot + Opt(digit_sequence);
-            exponential_float
-                = digit_sequence + exponent_part
-                | simple_float + exponent_part;
-            unsigned_float
-                = simple_float
-                | exponential_float;
-            hex_prefix
-                = CharSeq("0X") | CharSeq("0x");
-            hex_literal
-                = hex_prefix + Plus(hex_digit);
-            octal_literal
-                = CharSeq("0") + Star(octal_digit);
-            decimal_literal
-                = nonzero_digit + Star(digit);
-            unsigned_literal
-                = decimal_literal
-                | octal_literal
-                | hex_literal;
-            integer_suffix
-                = long_suffix
-                | unsigned_suffix
-                | unsigned_suffix + long_suffix
-                | long_suffix + unsigned_suffix;
-            int_literal
-                = unsigned_literal + Not(dot) + Opt(integer_suffix);
-            float_literal
-                = unsigned_float + Opt(float_suffix);
-            char_literal
-                = Opt(CharSeq("L")) + quote + Star(c_char) + quote;
-            string_literal
-                = Opt(CharSeq("L")) + dbl_quote + Star(s_char) + dbl_quote;
-            boolean_literal
-                = Word("true") | Word("false");
-            literal
-                = (int_literal
-                | char_literal
-                | float_literal
-                | string_literal
-                | boolean_literal)
-                + NoFail(Not(ident_next_char)) + ws;
-            #endregion
-
-            #region pre-processor directives
-            pragma = Word("#") + Word("pragma") + until_eol;
-            included_file = string_literal | CharSeq("<") + Star(Not(CharSeq(">")) + Anything()) + CharSeq(">");
-            include = Word("#") + Word("include") + included_file;
-            ifdef_macro = Word("#") + Word("if") + until_eol + eol;
-            endif_macro = Word("#") + Word("endif") + until_eol + eol;
-            elif_macro = Word("#") + Word("elif") + until_eol + eol;
-            else_macro = Word("#") + Word("else") + until_eol + eol;
-            #endregion
-
-            #region symbols
-            semicolon = CharSeq(";");
-            eos = Word(";");
-            #endregion
-
             InitializeRules<CppBaseGrammar>();
         }
     }

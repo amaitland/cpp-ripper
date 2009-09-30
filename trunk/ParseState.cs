@@ -19,12 +19,6 @@ namespace CppRipper
 
         #region public propterties
         /// <summary>
-        /// Indicates whether nodes should be created. If set, 
-        /// it will be applied recursively to all child nodes.
-        /// </summary>
-        public bool CreateNodes { get; set; }
-
-        /// <summary>
         /// Outputs a number of characters before the current parser position.
         /// When debugging, this property helps us see where we are in the input stream.
         /// </summary>
@@ -65,7 +59,6 @@ namespace CppRipper
         /// <param name="text"></param>
         public ParserState(string text)
         {
-            CreateNodes = true;
             this.text = text;
             ParseNode root = new ParseNode(null, null, text, 0);
             root.Complete(text.Length);

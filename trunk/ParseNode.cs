@@ -124,7 +124,6 @@ namespace CppRipper
         public void AddChild(ParseNode node)
         {
             Trace.Assert(node != null);
-            Trace.Assert(!(node.rule is SkipRule));
             
             // Add the child of a "NoFailRule", rather than a NoFailRule itself.
             // also if the child rule is an unnamed "ChoiceRule", add its child instead. 

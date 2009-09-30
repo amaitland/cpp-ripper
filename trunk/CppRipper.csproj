@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{A64E0273-2A7B-4CEC-A01A-6C3C9982E274}</ProjectGuid>
     <OutputType>Exe</OutputType>
@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="BaseGrammar.cs" />
     <Compile Include="CppBaseGrammar.cs" />
+    <Compile Include="CppFullGrammar.cs" />
     <Compile Include="CppStructuralGrammar.cs" />
     <Compile Include="CppStructuralOutput.cs" />
     <Compile Include="ParseNode.cs" />
@@ -56,6 +57,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rule.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="notes.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
