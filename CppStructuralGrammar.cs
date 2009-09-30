@@ -36,7 +36,7 @@ namespace CppRipper
 
         public Rule Delimiter(string s)
         {
-            return Skip(CharSeq(s)) + Eat(multiline_ws);
+            return CharSeq(s) + Star(multiline_ws);
         }
 
         public CppStructuralGrammar()
@@ -54,37 +54,37 @@ namespace CppRipper
                 = Delimiter("{") + declaration_list + NoFail(Delimiter("}"));
 
             symbol
-                = Not(CharSeq("/*") | CharSeq("//")) + CharSet("~!@%^&*-+=|:<>.?/,") + Eat(multiline_ws);
+                = Not(CharSeq("/*") | CharSeq("//")) + CharSet("~!@%^&*-+=|:<>.?/,") + multiline_ws;
 
             template_decl
                 = TEMPLATE + NoFail(Nested("<", ">")) + ws;
 
             typedef_decl
-                = TYPEDEF + Eat(multiline_ws);
+                = TYPEDEF + multiline_ws;
 
             class_decl
-                = CLASS + Opt(identifier) + Eat(multiline_ws);
+                = CLASS + Opt(identifier) + multiline_ws;
 
             struct_decl
-                = STRUCT + Opt(identifier) + Eat(multiline_ws);
+                = STRUCT + Opt(identifier) + multiline_ws;
 
             union_decl
-                = UNION + Opt(identifier) + Eat(multiline_ws);
+                = UNION + Opt(identifier) + multiline_ws;
 
             enum_decl
-                = ENUM + Opt(identifier) + Eat(multiline_ws);
+                = ENUM + Opt(identifier) + multiline_ws;
 
             label
-                = identifier + ws + COLON + Eat(multiline_ws);
+                = identifier + ws + COLON + multiline_ws;
 
             comment_set
-                = Star(comment + Eat(multiline_ws)) + Eat(multiline_ws);
+                = Star(comment + multiline_ws) + multiline_ws;
 
             same_line_comment
-                = Eat(simple_ws) + comment;
+                = simple_ws + comment;
 
             pp_directive
-                = CharSeq("#") + NoFailSeq(ws + identifier + Eat(simple_ws) + until_eol + eol);
+                = CharSeq("#") + NoFailSeq(ws + identifier + simple_ws + until_eol + eol);
 
             type_decl 
                 = Opt(template_decl) + (class_decl | struct_decl | union_decl | enum_decl);
@@ -101,12 +101,12 @@ namespace CppRipper
                 | identifier;
 
             declaration_content
-                = Plus(node + Eat(multiline_ws));
+                = Plus(node + multiline_ws);
 
             declaration
-                = comment_set + pp_directive + Eat(multiline_ws)
-                | comment_set + semicolon + Opt(same_line_comment) + Eat(multiline_ws)
-                | comment_set + declaration_content + Opt(semicolon) + Opt(same_line_comment) + Eat(multiline_ws);
+                = comment_set + pp_directive + multiline_ws
+                | comment_set + semicolon + Opt(same_line_comment) + multiline_ws
+                | comment_set + declaration_content + Opt(semicolon) + Opt(same_line_comment) + multiline_ws;
 
             file
                 = declaration_list + ws + NoFail(EndOfInput());

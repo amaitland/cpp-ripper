@@ -51,7 +51,7 @@ namespace CppRipper
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        public static Rule Not(Rule x) { return Skip(new NotRule(x)); }
+        public static Rule Not(Rule x) { return new NotRule(x); }
         
         /// <summary>
         /// Creates a rule that does not advanced the parser index, and will always
@@ -158,34 +158,13 @@ namespace CppRipper
         }
 
         /// <summary>
-        /// Parses a rule, but does not create a parse node.
+        /// Parses a rule and creates a parse node
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        public static Rule Skip(Rule x)
+        public static Rule Store(Rule x)
         {
-            return new SkipRule(x);
-        }
-
-        /// <summary>
-        /// Parses a rule and creates a parse node, but prevents any children 
-        /// from being created.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <returns></returns>
-        public static Rule Leaf(Rule x)
-        {
-            return new LeafRule(x);
-        }
-
-        /// <summary>
-        /// Parses a rule 0 or more times but does not create a parse node.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <returns></returns>
-        public static Rule Eat(Rule x)
-        {
-            return Skip(Star(x));
+            return new StoreRule(x);
         }
 
         /// <summary>

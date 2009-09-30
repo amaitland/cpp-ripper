@@ -173,39 +173,18 @@ namespace CppRipper
         /// </summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        public virtual bool Match(ParserState p)
+        public bool Match(ParserState p)
         {
             int old_index = p.index;
 
-            if (p.CreateNodes && !(this is SkipRule))
+            if (InternalMatch(p))
             {
-                ParseNode node = new ParseNode(this, p.Peek(), p.text, old_index);
-                p.Push(node);
-                if (InternalMatch(p))
-                {
-                    node.Complete(p.index);
-                    p.Pop();
-                    return true;
-                }
-                else
-                {
-                    p.index = old_index;
-                    node = null;
-                    p.Pop();
-                    return false;
-                }
+                return true;
             }
             else
             {
-                if (InternalMatch(p))
-                {
-                    return true;
-                }
-                else
-                {
-                    p.index = old_index;
-                    return false;
-                }
+                p.index = old_index;
+                return false;
             }
         }
 
@@ -727,51 +706,12 @@ namespace CppRipper
     }
 
     /// <summary>
-    /// Used to prevent creation of parse node in the AST tree. For 
-    /// example whitespace. 
-    /// </summary>
-    public class SkipRule : Rule
-    {
-        public SkipRule(Rule x)
-        {
-            AddRule(x);
-        }
-
-        public override string RuleDefinition
-        {
-            get { return "skip(" + rules[0].RuleDefinition + ")"; }
-        }
-
-        public override string RuleType
-        {
-            get { return "skip"; }
-        }
-
-        protected override bool InternalMatch(ParserState p)
-        {
-            // Tell the parser state to stop creating nodes. 
-            bool store = p.CreateNodes;
-            p.CreateNodes = false;
-            bool result = false;
-            try
-            {
-                result = rules[0].Match(p);
-            }
-            finally
-            {
-                p.CreateNodes = store;
-            }
-            return result;
-        }
-    }
-
-    /// <summary>
     /// Used to prevent creation of child parse nodes in the AST tree. For 
     /// example identifiers. Similar to SkipRule.
     /// </summary>
-    public class LeafRule : Rule
+    public class StoreRule : Rule
     {
-        public LeafRule(Rule x)
+        public StoreRule(Rule x)
         {
             AddRule(x);
         }
@@ -783,24 +723,25 @@ namespace CppRipper
 
         public override string RuleType
         {
-            get { return "leaf"; }
+            get { return "store(" + rules[0].RuleType + ")"; }
         }
 
         protected override bool InternalMatch(ParserState p)
         {
-            // Tell the parser state to stop creating nodes. 
-            bool store = p.CreateNodes;
-            p.CreateNodes = false;
-            bool result = false;
-            try
+            ParseNode node = new ParseNode(this, p.Peek(), p.text, p.index);
+            p.Push(node);
+            if (rules[0].Match(p))
             {
-                result = rules[0].Match(p);
+                node.Complete(p.index);
+                p.Pop();
+                return true;
             }
-            finally
+            else
             {
-                p.CreateNodes = store;
+                node = null;
+                p.Pop();
+                return false;
             }
-            return result;
         }
     }
     /// <summary>
@@ -822,14 +763,9 @@ namespace CppRipper
             get { return "_EOF_"; }
         }
 
-        public override bool Match(ParserState p)
-        {
-            return p.AtEndOfInput();
-        }
-
         protected override bool InternalMatch(ParserState p)
         {
-            throw new Exception("Error: EndOfInput.InternalMatch() should never be called");
+            return p.AtEndOfInput();
         }
     }
 }
