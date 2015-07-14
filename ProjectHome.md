@@ -1,0 +1,3 @@
+The goal of the C++ Ripper project is to create a simple and reusable parsing framework specialized for C and C++ code. The C++ Ripper parser is a recursive descent parser, which uses operator overloading to allow the expression of grammars using a notation similar to PEGs.
+
+I am developing C++ Ripper to the form the basis for tools that parse C++ documentation, perform pretty printing, and that can be used to refactor code. It should be easy to adapt for other purposes and other languages.
